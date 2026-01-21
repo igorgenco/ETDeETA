@@ -2,16 +2,15 @@ import os
 import xmlrpc.client
 import pandas as pd
 
-
 ODOO_URL = os.environ["ODOO_URL"].rstrip("/")
 ODOO_DB = os.environ["ODOO_DB"]
 ODOO_USER = os.environ["ODOO_USER"]
 ODOO_API_KEY = os.environ["ODOO_API_KEY"]
-OUT_PATH = os.getenv("OUT_PATH", "gnc_export.xlsx")
+
+OUT_PATH = os.getenv("OUT_PATH", "/data/gnc_export.xlsx")
 
 MODEL = "x_gnc"
 
-# campos técnicos -> nomes bonitos no Excel
 FIELDS_MAP = {
     "x_name": "GNC",
     "x_studio_eta": "ETA",
@@ -28,7 +27,7 @@ def main():
 
     models = xmlrpc.client.ServerProxy(f"{ODOO_URL}/xmlrpc/2/object")
 
-    domain = []  # você pode filtrar aqui depois, se quiser
+    domain = []  # filtros opcionais depois
     fields = list(FIELDS_MAP.keys())
 
     rows = models.execute_kw(
@@ -46,10 +45,12 @@ def main():
     # manter só as colunas desejadas e na ordem certa
     df = df[["GNC", "ETA", "ETD", "Status"]]
 
+    # garantir que a pasta /data existe (no Railway ela existe, mas é seguro)
+    os.makedirs(os.path.dirname(OUT_PATH), exist_ok=True)
+
     df.to_excel(OUT_PATH, index=False)
     print(f"OK: gerado {OUT_PATH} com {len(df)} linhas")
 
 
 if __name__ == "__main__":
     main()
-
