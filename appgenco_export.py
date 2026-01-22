@@ -19,6 +19,7 @@ OUT_PATH = os.getenv("OUT_PATH", "/data/docs.xlsx")
 LOGIN_PATH = "/admin/login/?next=/admin/orders/order/"
 EXPORT_URL = f"{APPGENCO_URL}/admin/orders/order/"  # POST aqui com action=export_order
 
+
 def send_email_resend(filepath: str):
     with open(filepath, "rb") as f:
         content_b64 = base64.b64encode(f.read()).decode("utf-8")
@@ -33,26 +34,30 @@ def send_email_resend(filepath: str):
 
     r = requests.post(
         "https://api.resend.com/emails",
-        headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
+        headers={
+            "Authorization": f"Bearer {RESEND_API_KEY}",
+            "Content-Type": "application/json",
+        },
         json=payload,
         timeout=30,
     )
     r.raise_for_status()
     print("OK: email enviado")
 
+
 def extract_csrf(html: str) -> str:
     m = re.search(r'name="csrfmiddlewaretoken"\s+value="([^"]+)"', html)
     if not m:
-        raise RuntimeError("Não achei csrfmiddlewaretoken na página de login.")
+        raise RuntimeError("Não achei csrfmiddlewaretoken na página.")
     return m.group(1)
+
 
 def main():
     os.makedirs(os.path.dirname(OUT_PATH), exist_ok=True)
-
     s = requests.Session()
 
     # 1) abre login pra pegar CSRF e cookie
-    login_url = f"{SITE_URL}{LOGIN_PATH}"
+    login_url = f"{APPGENCO_URL}{LOGIN_PATH}"
     r = s.get(login_url, timeout=30)
     r.raise_for_status()
     csrf = extract_csrf(r.text)
@@ -62,8 +67,8 @@ def main():
         login_url,
         data={
             "csrfmiddlewaretoken": csrf,
-            "username": SITE_USER,
-            "password": SITE_PASS,
+            "username": APPGENCO_USER,
+            "password": APPGENCO_PASS,
             "next": "/admin/orders/order/",
         },
         headers={"Referer": login_url},
@@ -72,7 +77,7 @@ def main():
     )
     r.raise_for_status()
 
-    # 3) abre a página de orders pra pegar um CSRF válido pra action
+    # 3) abre a página de orders pra pegar CSRF válido pra action
     r = s.get(EXPORT_URL, timeout=30)
     r.raise_for_status()
     csrf2 = extract_csrf(r.text)
@@ -91,7 +96,12 @@ def main():
     )
     r.raise_for_status()
 
-    # 5) salva arquivo
+    # 5) salva arquivo (confere se veio XLSX)
+    ctype = (r.headers.get("Content-Type") or "").lower()
+    if "spreadsheetml" not in ctype and "octet-stream" not in ctype:
+        # provavelmente voltou HTML (erro/permissão)
+        raise RuntimeError(f"Resposta não é XLSX. Content-Type: {r.headers.get('Content-Type')}")
+
     with open(OUT_PATH, "wb") as f:
         f.write(r.content)
 
@@ -99,6 +109,7 @@ def main():
 
     # 6) envia por email
     send_email_resend(OUT_PATH)
+
 
 if __name__ == "__main__":
     main()
