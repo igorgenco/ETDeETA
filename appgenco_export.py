@@ -17,7 +17,7 @@ MAIL_TO = os.environ["MAIL_TO"]
 OUT_PATH = os.getenv("OUT_PATH", "/data/docs.xlsx")
 
 LOGIN_PATH = "/admin/login/?next=/admin/orders/order/"
-EXPORT_URL = f"{SITE_URL}/admin/orders/order/"  # POST aqui com action=export_order
+EXPORT_URL = f"{APPGENCO_URL}/admin/orders/order/"  # POST aqui com action=export_order
 
 def send_email_resend(filepath: str):
     with open(filepath, "rb") as f:
