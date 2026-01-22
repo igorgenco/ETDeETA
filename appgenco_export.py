@@ -51,6 +51,19 @@ def get_csrf_from_cookie(session: requests.Session) -> str:
         raise RuntimeError("Não achei cookie csrftoken.")
     return token
 
+def extract_csrf(html: str) -> str:
+    # Django costuma ter o token no input hidden do form
+    m = re.search(r'name=["\']csrfmiddlewaretoken["\']\s+value=["\']([^"\']+)["\']', html)
+    if m:
+        return m.group(1)
+
+    # fallback: às vezes vem em cookies/JS (menos comum)
+    m = re.search(r'csrfmiddlewaretoken=([^;]+)', html)
+    if m:
+        return m.group(1)
+
+    raise RuntimeError("Não achei csrfmiddlewaretoken na página.")
+
 
 def main():
     os.makedirs(os.path.dirname(OUT_PATH), exist_ok=True)
