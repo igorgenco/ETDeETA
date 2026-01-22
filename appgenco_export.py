@@ -45,11 +45,11 @@ def send_email_resend(filepath: str):
     print("OK: email enviado")
 
 
-def extract_csrf(html: str) -> str:
-    m = re.search(r'name="csrfmiddlewaretoken"\s+value="([^"]+)"', html)
-    if not m:
-        raise RuntimeError("Não achei csrfmiddlewaretoken na página.")
-    return m.group(1)
+def get_csrf_from_cookie(session: requests.Session) -> str:
+    token = session.cookies.get("csrftoken")
+    if not token:
+        raise RuntimeError("Não achei cookie csrftoken.")
+    return token
 
 
 def main():
