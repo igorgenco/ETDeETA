@@ -71,7 +71,7 @@ def main():
             "password": APPGENCO_PASS,
             "next": "/admin/orders/order/",
         },
-        headers={"Referer": login_url},
+        headers={"Referer": login_url, "X-CSRFToken": csrf},
         timeout=30,
         allow_redirects=True,
     )
