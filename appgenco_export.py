@@ -4,9 +4,9 @@ import base64
 import requests
 
 # Site (Railway > Variables)
-APPGENCO_URL = os.environ["http://genco.saltambiental.com.br"].rstrip("/")
-APPGENCO_USER = os.environ["Daniel_Marques"]
-APPGENCO_PASS = os.environ["Genco2025"]
+APPGENCO_URL = os.environ["APPGENCO_URL"].rstrip("/")
+APPGENCO_USER = os.environ["APPGENCO_USER"]
+APPGENCO_PASS = os.environ["APPGENCO_PASS"]
 
 # Resend (Railway > Variables)
 RESEND_API_KEY = os.environ["RESEND_API_KEY"]
