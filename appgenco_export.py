@@ -60,7 +60,7 @@ def main():
     login_url = f"{APPGENCO_URL}{LOGIN_PATH}"
     r = s.get(login_url, timeout=30)
     r.raise_for_status()
-    csrf = extract_csrf(r.text)
+    csrf = get_csrf_from_cookie(s)
 
     # 2) faz login (Django admin)
     r = s.post(
