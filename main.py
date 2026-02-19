@@ -23,9 +23,9 @@ FIELDS_MAP = {
     "x_name": "GNC",
     "x_studio_eta": "ETA",
     "x_studio_vessel_date": "ETD",
-    "x_studio_ata": "ATA",
-    "x_studio_atd": "ATD"
     "x_studio_stage_id": "Status",
+    "x_studio_ata": "ATA",
+    "x_studio_atd": "ATD",
 }
 
 def send_email_resend(filepath: str):
