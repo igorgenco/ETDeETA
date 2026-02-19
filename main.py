@@ -23,6 +23,8 @@ FIELDS_MAP = {
     "x_name": "GNC",
     "x_studio_eta": "ETA",
     "x_studio_vessel_date": "ETD",
+    "x_studio_ata": "ATA",
+    "x_studio_atd": "ATD"
     "x_studio_status": "Status",
 }
 
@@ -65,7 +67,7 @@ def main():
     )
 
     df = pd.DataFrame(rows).rename(columns=FIELDS_MAP)
-    df = df[["GNC", "ETA", "ETD", "Status"]]
+    df = df[["GNC", "ETA", "ETD", "ATA", "ATD", "Status"]]
 
     os.makedirs(os.path.dirname(OUT_PATH), exist_ok=True)
     df.to_excel(OUT_PATH, index=False)
