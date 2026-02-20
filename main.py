@@ -4,6 +4,8 @@ import xmlrpc.client
 import pandas as pd
 import requests
 
+print("EXPORT VERSION = 2026-02-20 A (Expected Arrival)")
+
 # Odoo (Railway > Variables)
 ODOO_URL = os.environ["ODOO_URL"].rstrip("/")
 ODOO_DB = os.environ["ODOO_DB"]
