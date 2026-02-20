@@ -26,6 +26,7 @@ FIELDS_MAP = {
     "x_studio_stage_id": "Status",
     "x_studio_ata": "ATA",
     "x_studio_atd": "ATD",
+    "x_studio_expected_arrival_cs_date"
 }
 
 def send_email_resend(filepath: str):
@@ -67,7 +68,7 @@ def main():
     )
 
     df = pd.DataFrame(rows).rename(columns=FIELDS_MAP)
-    df = df[["GNC", "ETA", "ETD", "ATA", "ATD", "Status"]]
+    df = df[["GNC", "ETA", "ETD", "ATA", "ATD", "Status", "Expected Arrival"]]
 
     os.makedirs(os.path.dirname(OUT_PATH), exist_ok=True)
     df.to_excel(OUT_PATH, index=False)
