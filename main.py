@@ -26,7 +26,7 @@ FIELDS_MAP = {
     "x_studio_stage_id": "Status",
     "x_studio_ata": "ATA",
     "x_studio_atd": "ATD",
-    "x_studio_expected_arrival_cs_date"
+    "x_studio_expected_arrival_cs_date",
 }
 
 def send_email_resend(filepath: str):
