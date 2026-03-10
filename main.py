@@ -4,7 +4,7 @@ import xmlrpc.client
 import pandas as pd
 import requests
 
-print("EXPORT VERSION = 2026-02-20 A (Expected Arrival)")
+print("EXPORT VERSION = 2026-02-20 A (Lead Time)")
 
 # Odoo (Railway > Variables)
 ODOO_URL = os.environ["ODOO_URL"].rstrip("/")
@@ -28,7 +28,7 @@ FIELDS_MAP = {
     "x_studio_stage_id": "Status",
     "x_studio_ata": "ATA",
     "x_studio_atd": "ATD",
-    "x_studio_expected_arrival_cs_date": "Expected Arrival",
+    "x_studio_estimated_shipping": "Lead Time",
 }
 
 def send_email_resend(filepath: str):
@@ -70,7 +70,7 @@ def main():
     )
 
     df = pd.DataFrame(rows).rename(columns=FIELDS_MAP)
-    df = df[["GNC", "ETA", "ETD", "ATA", "ATD", "Status", "Expected Arrival"]]
+    df = df[["GNC", "ETA", "ETD", "ATA", "ATD", "Status", "Lead Time"]]
 
     os.makedirs(os.path.dirname(OUT_PATH), exist_ok=True)
     df.to_excel(OUT_PATH, index=False)
