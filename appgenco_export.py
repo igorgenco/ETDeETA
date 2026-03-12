@@ -1,8 +1,8 @@
+```python
 import os
 import re
 import base64
 import requests
-
 
 # ====== ENV (Railway > Variables) ======
 APPGENCO_URL = os.environ["APPGENCO_URL"].rstrip("/")
@@ -17,6 +17,9 @@ OUT_PATH = os.getenv("OUT_PATH", "/data/docs.xlsx")
 
 LOGIN_PATH = "/admin/login/?next=/admin/orders/order/"
 ORDERS_PATH = "/admin/orders/order/"
+
+# Filtro do admin: ?q=&archived=all
+FILTER_PARAMS = {"q": "", "archived": "all"}
 
 
 def send_email_resend(filepath: str) -> None:
@@ -47,10 +50,6 @@ def send_email_resend(filepath: str) -> None:
 
 
 def extract_csrf(html: str, session: requests.Session) -> str:
-    """
-    Tenta pegar csrfmiddlewaretoken do HTML.
-    Se não existir no HTML, tenta cookie 'csrftoken' do Django.
-    """
     m = re.search(r'name="csrfmiddlewaretoken"\s+value="([^"]+)"', html)
     if m:
         return m.group(1)
@@ -63,11 +62,6 @@ def extract_csrf(html: str, session: requests.Session) -> str:
 
 
 def extract_one_selected_action_id(html: str) -> str:
-    """
-    No Django admin, os checkboxes da lista vêm como:
-    <input type="checkbox" name="_selected_action" value="2451">
-    A action normalmente exige pelo menos 1 desses valores.
-    """
     m = re.search(r'name="_selected_action"\s+value="(\d+)"', html)
     if not m:
         raise RuntimeError(
@@ -78,7 +72,6 @@ def extract_one_selected_action_id(html: str) -> str:
 
 
 def looks_like_login_page(html: str) -> bool:
-    # Heurística simples: página de login do admin tem campo username
     return ('name="username"' in html) and ('name="password"' in html)
 
 
@@ -121,8 +114,8 @@ def main():
     )
     r.raise_for_status()
 
-    # 3) GET orders page (pegar CSRF válido + 1 ID selecionável)
-    r = s.get(orders_url, timeout=30)
+    # 3) GET orders page COM FILTRO (?q=&archived=all)
+    r = s.get(orders_url, params=FILTER_PARAMS, timeout=30)
     r.raise_for_status()
 
     if looks_like_login_page(r.text):
@@ -131,9 +124,10 @@ def main():
     csrf_orders = extract_csrf(r.text, s)
     one_id = extract_one_selected_action_id(r.text)
 
-    # 4) POST export (select_across=1 => “todos”, mas precisa mandar 1 id também)
+    # 4) POST export no MESMO filtro
     r = s.post(
         orders_url,
+        params=FILTER_PARAMS,
         data={
             "csrfmiddlewaretoken": csrf_orders,
             "action": "export_order",
@@ -141,14 +135,13 @@ def main():
             "index": "0",
             "_selected_action": one_id,
         },
-        headers={"Referer": orders_url, "X-CSRFToken": csrf_orders},
+        headers={"Referer": str(r.url), "X-CSRFToken": csrf_orders},
         timeout=120,
         allow_redirects=True,
     )
     r.raise_for_status()
 
     if not is_xlsx_response(r):
-        # Ajuda a diagnosticar: muitas vezes é HTML de erro/redirect
         ctype = r.headers.get("Content-Type")
         snippet = (r.text or "")[:300].replace("\n", " ")
         raise RuntimeError(f"Resposta não é XLSX. Content-Type: {ctype}. Trecho: {snippet}")
@@ -165,3 +158,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+```
