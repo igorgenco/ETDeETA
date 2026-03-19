@@ -1,3 +1,4 @@
+python
 import os
 import re
 import base64
@@ -12,6 +13,7 @@ RESEND_API_KEY = os.environ["RESEND_API_KEY"]
 MAIL_FROM = os.environ["MAIL_FROM"]
 MAIL_TO = os.environ["MAIL_TO"]
 
+# Queremos SEMPRE salvar e enviar a planilha do APP (docs.xlsx)
 OUT_PATH = os.getenv("OUT_PATH", "/data/docs.xlsx")
 
 LOGIN_PATH = "/admin/login/?next=/admin/orders/order/"
@@ -45,8 +47,13 @@ def send_email_resend(filepath: str) -> None:
         json=payload,
         timeout=30,
     )
+
+    # Debug pra não ficar “silencioso” no Railway
+    print("RESEND STATUS:", r.status_code, flush=True)
+    print("RESEND BODY:", (r.text or "")[:400], flush=True)
+
     r.raise_for_status()
-    print("OK: email enviado")
+    print("OK: email enviado para:", MAIL_TO, flush=True)
 
 
 def extract_csrf(html: str, session: requests.Session) -> str:
@@ -83,7 +90,13 @@ def extract_action_value_by_label(html: str, label_text: str) -> str:
     )
     m = re.search(pattern, html, flags=re.IGNORECASE)
     if not m:
-        raise RuntimeError(f'Não achei a action com texto "{label_text}" no HTML.')
+        # ajuda a debug: mostra as actions disponíveis (textos)
+        opts = re.findall(r"<option[^>]*>\s*([^<]+?)\s*</option>", html, flags=re.IGNORECASE)
+        opts = [o.strip() for o in opts if o.strip()]
+        raise RuntimeError(
+            f'Não achei a action com texto "{label_text}". '
+            f"Actions vistas: {opts[:15]}"
+        )
     return m.group(1)
 
 
@@ -99,6 +112,9 @@ def is_xlsx_response(r: requests.Response) -> bool:
 
 def main():
     os.makedirs(os.path.dirname(OUT_PATH), exist_ok=True)
+
+    print("DEBUG OUT_PATH:", OUT_PATH, flush=True)
+    print("DEBUG FILTER:", FILTER_PARAMS, flush=True)
 
     s = requests.Session()
 
@@ -135,8 +151,10 @@ def main():
     csrf_orders = extract_csrf(r.text, s)
     one_id = extract_one_selected_action_id(r.text)
 
-    # pega o value real da action desejada pelo texto do dropdown
     action_value = extract_action_value_by_label(r.text, ACTION_LABEL)
+    print("DEBUG ACTION_LABEL:", ACTION_LABEL, flush=True)
+    print("DEBUG action_value:", action_value, flush=True)
+    print("DEBUG GET URL:", r.url, flush=True)
 
     # 4) POST export no MESMO filtro, usando a action correta
     r = s.post(
@@ -144,7 +162,7 @@ def main():
         params=FILTER_PARAMS,
         data={
             "csrfmiddlewaretoken": csrf_orders,
-            "action": action_value,          # <-- aqui muda para "no order items"
+            "action": action_value,
             "select_across": "1",
             "index": "0",
             "_selected_action": one_id,
@@ -157,16 +175,16 @@ def main():
 
     if not is_xlsx_response(r):
         ctype = r.headers.get("Content-Type")
-        snippet = (r.text or "")[:300].replace("\n", " ")
+        snippet = (r.text or "")[:400].replace("\n", " ")
         raise RuntimeError(f"Resposta não é XLSX. Content-Type: {ctype}. Trecho: {snippet}")
 
-    # 5) salva arquivo
+    # 5) salva arquivo (docs.xlsx do APP)
     with open(OUT_PATH, "wb") as f:
         f.write(r.content)
 
-    print(f"OK: baixado {OUT_PATH} ({len(r.content)} bytes)")
+    print(f"OK: baixado {OUT_PATH} ({len(r.content)} bytes)", flush=True)
 
-    # 6) envia por email
+    # 6) envia por email (anexa docs.xlsx)
     send_email_resend(OUT_PATH)
 
 
