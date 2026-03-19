@@ -20,6 +20,9 @@ ORDERS_PATH = "/admin/orders/order/"
 # Filtro do admin: ?q=&archived=all
 FILTER_PARAMS = {"q": "", "archived": "all"}
 
+# Action desejada no dropdown do Django Admin
+ACTION_LABEL = "Export to XLSX (no order items)"
+
 
 def send_email_resend(filepath: str) -> None:
     with open(filepath, "rb") as f:
@@ -30,9 +33,7 @@ def send_email_resend(filepath: str) -> None:
         "to": [MAIL_TO],
         "subject": "Export - Orders (XLSX)",
         "text": "Segue a planilha em anexo.",
-        "attachments": [
-            {"filename": os.path.basename(filepath), "content": content_b64}
-        ],
+        "attachments": [{"filename": os.path.basename(filepath), "content": content_b64}],
     }
 
     r = requests.post(
@@ -70,6 +71,22 @@ def extract_one_selected_action_id(html: str) -> str:
     return m.group(1)
 
 
+def extract_action_value_by_label(html: str, label_text: str) -> str:
+    """
+    Pega o VALUE real da action pelo texto exibido no dropdown.
+    Ex.: <option value="export_order_no_items">Export to XLSX (no order items)</option>
+    """
+    pattern = (
+        r'<option[^>]*value="([^"]+)"[^>]*>\s*'
+        + re.escape(label_text) +
+        r"\s*</option>"
+    )
+    m = re.search(pattern, html, flags=re.IGNORECASE)
+    if not m:
+        raise RuntimeError(f'Não achei a action com texto "{label_text}" no HTML.')
+    return m.group(1)
+
+
 def looks_like_login_page(html: str) -> bool:
     return ('name="username"' in html) and ('name="password"' in html)
 
@@ -77,12 +94,7 @@ def looks_like_login_page(html: str) -> bool:
 def is_xlsx_response(r: requests.Response) -> bool:
     ctype = (r.headers.get("Content-Type") or "").lower()
     cdisp = (r.headers.get("Content-Disposition") or "").lower()
-
-    if "spreadsheetml" in ctype:
-        return True
-    if "attachment" in cdisp and ".xlsx" in cdisp:
-        return True
-    return False
+    return ("spreadsheetml" in ctype) or ("attachment" in cdisp and ".xlsx" in cdisp)
 
 
 def main():
@@ -93,7 +105,7 @@ def main():
     login_url = f"{APPGENCO_URL}{LOGIN_PATH}"
     orders_url = f"{APPGENCO_URL}{ORDERS_PATH}"
 
-    # 1) GET login (pegar CSRF + cookie)
+    # 1) GET login (CSRF + cookie)
     r = s.get(login_url, timeout=30)
     r.raise_for_status()
     csrf_login = extract_csrf(r.text, s)
@@ -113,7 +125,7 @@ def main():
     )
     r.raise_for_status()
 
-    # 3) GET orders page COM FILTRO (?q=&archived=all)
+    # 3) GET orders page COM filtro (?q=&archived=all)
     r = s.get(orders_url, params=FILTER_PARAMS, timeout=30)
     r.raise_for_status()
 
@@ -123,13 +135,16 @@ def main():
     csrf_orders = extract_csrf(r.text, s)
     one_id = extract_one_selected_action_id(r.text)
 
-    # 4) POST export no MESMO filtro
+    # pega o value real da action desejada pelo texto do dropdown
+    action_value = extract_action_value_by_label(r.text, ACTION_LABEL)
+
+    # 4) POST export no MESMO filtro, usando a action correta
     r = s.post(
         orders_url,
         params=FILTER_PARAMS,
         data={
             "csrfmiddlewaretoken": csrf_orders,
-            "action": "export_order",
+            "action": action_value,          # <-- aqui muda para "no order items"
             "select_across": "1",
             "index": "0",
             "_selected_action": one_id,
