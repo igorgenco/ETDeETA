@@ -1,10 +1,13 @@
+import os
 from pathlib import Path
+from dotenv import load_dotenv
 from playwright.sync_api import sync_playwright
 
-APP_URL = "http://genco.saltambiental.com.br/admin/orders/order/"
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
-APP_USER = "Daniel_Marques"
-APP_PASS = "Genco2025"
+APP_URL = os.environ["APP_URL"]
+APP_USER = os.environ["APP_USER"]
+APP_PASS = os.environ["APP_PASS"]
 
 FILE_TO_UPLOAD = Path(__file__).resolve().parent / "output" / "docs_upload.xlsx"
 

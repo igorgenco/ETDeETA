@@ -1,15 +1,19 @@
 print("SCRIPT INICIOU", flush=True)
 
+import os
 from pathlib import Path
 import time
 import datetime as dt
 import win32com.client
+from dotenv import load_dotenv
 
 BASE = Path(__file__).resolve().parent
 DOWN = BASE / "downloads"
 DOWN.mkdir(parents=True, exist_ok=True)
 
-ACCOUNT = "gencoit@genco-ie.com"
+load_dotenv(BASE.parent / ".env")
+
+ACCOUNT = os.environ["OUTLOOK_ACCOUNT"]
 
 ODOO_SUBJECT = "Export Odoo - x_gnc"
 APP_SUBJECT  = "Export - Orders (XLSX)"
