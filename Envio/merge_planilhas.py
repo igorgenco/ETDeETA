@@ -3,7 +3,7 @@ import pandas as pd
 import ast
 import re
 
-BASE = Path(r"C:\GencoServer\Genco IT\Planilhas para testes")
+BASE = Path(__file__).resolve().parent
 DOWN = BASE / "downloads"
 OUT  = BASE / "output"
 

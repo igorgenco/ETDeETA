@@ -5,7 +5,7 @@ import time
 import datetime as dt
 import win32com.client
 
-BASE = Path(r"C:\GencoServer\Genco IT\Planilhas para testes")
+BASE = Path(__file__).resolve().parent
 DOWN = BASE / "downloads"
 DOWN.mkdir(parents=True, exist_ok=True)
 

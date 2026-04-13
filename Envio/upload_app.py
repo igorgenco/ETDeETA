@@ -6,7 +6,7 @@ APP_URL = "http://genco.saltambiental.com.br/admin/orders/order/"
 APP_USER = "Daniel_Marques"
 APP_PASS = "Genco2025"
 
-FILE_TO_UPLOAD = Path(r"C:\GencoServer\Genco IT\Planilhas para testes\output\docs_upload.xlsx")
+FILE_TO_UPLOAD = Path(__file__).resolve().parent / "output" / "docs_upload.xlsx"
 
 SEL_USER = "input#id_username"
 SEL_PASS = "input#id_password"
