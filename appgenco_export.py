@@ -1,4 +1,4 @@
-import os
+﻿import os
 import re
 import base64
 import requests
@@ -48,7 +48,7 @@ def send_email_resend(filepath: str) -> None:
         timeout=30,
     )
 
-    # Debug pra não ficar “silencioso” no Railway
+    # Debug pra nÃ£o ficar â€œsilenciosoâ€ no Railway
     print("RESEND STATUS:", r.status_code, flush=True)
     print("RESEND BODY:", (r.text or "")[:400], flush=True)
 
@@ -65,15 +65,15 @@ def extract_csrf(html: str, session: requests.Session) -> str:
     if cookie_token:
         return cookie_token
 
-    raise RuntimeError("Não achei csrfmiddlewaretoken (nem no HTML, nem no cookie csrftoken).")
+    raise RuntimeError("NÃ£o achei csrfmiddlewaretoken (nem no HTML, nem no cookie csrftoken).")
 
 
 def extract_one_selected_action_id(html: str) -> str:
     m = re.search(r'name="_selected_action"\s+value="(\d+)"', html)
     if not m:
         raise RuntimeError(
-            "Não achei nenhum _selected_action na página. "
-            "Verifique se a lista tem pelo menos 1 order visível."
+            "NÃ£o achei nenhum _selected_action na pÃ¡gina. "
+            "Verifique se a lista tem pelo menos 1 order visÃ­vel."
         )
     return m.group(1)
 
@@ -90,11 +90,11 @@ def extract_action_value_by_label(html: str, label_text: str) -> str:
     )
     m = re.search(pattern, html, flags=re.IGNORECASE)
     if not m:
-        # ajuda a debug: mostra as actions disponíveis (textos)
+        # ajuda a debug: mostra as actions disponÃ­veis (textos)
         opts = re.findall(r"<option[^>]*>\s*([^<]+?)\s*</option>", html, flags=re.IGNORECASE)
         opts = [o.strip() for o in opts if o.strip()]
         raise RuntimeError(
-            f'Não achei a action com texto "{label_text}". '
+            f'NÃ£o achei a action com texto "{label_text}". '
             f"Actions vistas: {opts[:15]}"
         )
     return m.group(1)
@@ -139,6 +139,8 @@ def main():
         timeout=30,
         allow_redirects=True,
     )
+    print("DEBUG LOGIN STATUS:", r.status_code, flush=True)
+    print("DEBUG LOGIN BODY:", (r.text or "")[:600], flush=True)
     r.raise_for_status()
 
     # 3) GET orders page COM filtro (?q=&archived=all)
@@ -146,7 +148,7 @@ def main():
     r.raise_for_status()
 
     if looks_like_login_page(r.text):
-        raise RuntimeError("Login não foi mantido (voltou para a página de login). Verifique usuário/senha.")
+        raise RuntimeError("Login nÃ£o foi mantido (voltou para a pÃ¡gina de login). Verifique usuÃ¡rio/senha.")
 
     csrf_orders = extract_csrf(r.text, s)
     one_id = extract_one_selected_action_id(r.text)
@@ -176,7 +178,7 @@ def main():
     if not is_xlsx_response(r):
         ctype = r.headers.get("Content-Type")
         snippet = (r.text or "")[:400].replace("\n", " ")
-        raise RuntimeError(f"Resposta não é XLSX. Content-Type: {ctype}. Trecho: {snippet}")
+        raise RuntimeError(f"Resposta nÃ£o Ã© XLSX. Content-Type: {ctype}. Trecho: {snippet}")
 
     # 5) salva arquivo (docs.xlsx do APP)
     with open(OUT_PATH, "wb") as f:
