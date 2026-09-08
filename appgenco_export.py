@@ -140,7 +140,7 @@ def main():
         allow_redirects=True,
     )
     print("DEBUG LOGIN STATUS:", r.status_code, flush=True)
-    print("DEBUG LOGIN BODY:", (r.text or "")[:600], flush=True)
+    print("DEBUG LOGIN BODY:", (r.text or "")[:3000], flush=True)
     r.raise_for_status()
 
     # 3) GET orders page COM filtro (?q=&archived=all)
