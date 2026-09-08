@@ -1,4 +1,4 @@
-import os
+﻿import os
 from pathlib import Path
 from dotenv import load_dotenv
 from playwright.sync_api import sync_playwright
@@ -20,7 +20,7 @@ SEL_UPLOAD_BTN = "input[type='submit'][value='upload']"
 
 def main():
     if not FILE_TO_UPLOAD.exists():
-        raise FileNotFoundError(f"Arquivo não encontrado: {FILE_TO_UPLOAD}")
+        raise FileNotFoundError(f"Arquivo nÃ£o encontrado: {FILE_TO_UPLOAD}")
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False)
@@ -37,7 +37,7 @@ def main():
 
         # upload
         page.set_input_files(SEL_FILE_INPUT, str(FILE_TO_UPLOAD))
-        page.click(SEL_UPLOAD_BTN)
+        page.click(SEL_UPLOAD_BTN, no_wait_after=True)
 
         page.wait_for_timeout(8000)
         browser.close()
