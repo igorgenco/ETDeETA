@@ -15,6 +15,7 @@ MAIL_TO = os.environ["MAIL_TO"]
 # Queremos SEMPRE salvar e enviar a planilha do APP (docs.xlsx)
 OUT_PATH = os.getenv("OUT_PATH", "/data/docs.xlsx")
 
+ORIGIN = APPGENCO_URL
 LOGIN_PATH = "/admin/login/?next=/admin/orders/order/"
 ORDERS_PATH = "/admin/orders/order/"
 
@@ -134,7 +135,7 @@ def main():
             "password": APPGENCO_PASS,
             "next": ORDERS_PATH,
         },
-        headers={"Referer": login_url, "X-CSRFToken": csrf_login},
+        headers={"Referer": login_url, "Origin": ORIGIN, "X-CSRFToken": csrf_login},
         timeout=30,
         allow_redirects=True,
     )
@@ -166,7 +167,7 @@ def main():
             "index": "0",
             "_selected_action": one_id,
         },
-        headers={"Referer": str(r.url), "X-CSRFToken": csrf_orders},
+        headers={"Referer": str(r.url), "Origin": ORIGIN, "X-CSRFToken": csrf_orders},
         timeout=120,
         allow_redirects=True,
     )

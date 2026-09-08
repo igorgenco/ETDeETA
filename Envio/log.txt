@@ -298,3 +298,17 @@ Tentativa 1/10 -> Odoo:True App:True
 Pasta: C:\GencoServer\Genco IT\Planilhas para testes\downloads
 OK. Linhas atualizadas: 1391
 Arquivo gerado: C:\GencoServer\Genco IT\Planilhas para testes\output\docs_upload.xlsx
+==== 20/05/2026  8:30:08,79 ==== 
+SCRIPT INICIOU
+Traceback (most recent call last):
+  File "C:\Users\Daniel\Desktop\Daniel\Meus Projetos\ETDeETA\Envio\automatizacao_pegar_planilhas.py", line 8, in <module>
+    from dotenv import load_dotenv
+ModuleNotFoundError: No module named 'dotenv'
+ERRO NO DOWNLOAD  
+==== 20/05/2026  8:31:48,67 ==== 
+SCRIPT INICIOU
+Traceback (most recent call last):
+  File "C:\Users\Daniel\Desktop\Daniel\Meus Projetos\ETDeETA\Envio\automatizacao_pegar_planilhas.py", line 8, in <module>
+    from dotenv import load_dotenv
+ModuleNotFoundError: No module named 'dotenv'
+ERRO NO DOWNLOAD  
